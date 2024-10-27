@@ -1,0 +1,85 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OutSystems Web Developer Specialization Mock Exam</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+</head>
+<body>
+    <h1>OutSystems Web Developer Specialization Mock Exam</h1>
+
+    <form id="quizForm"></form>
+    <input type="button" value="Submit" onclick="submitQuiz()">
+
+    <div id="result" class="result"></div>
+
+    <!-- Cube container for the animation -->
+    <div class="cube-container">
+        <div class="cube">
+            <div class="face front"></div>
+            <div class="face back"></div>
+            <div class="face left"></div>
+            <div class="face right"></div>
+            <div class="face top"></div>
+            <div class="face bottom"></div>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script>
+        function getRandomQuestions(questionPool, num) {
+            let shuffled = questionPool.sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, num);
+        }
+
+        const questionNumber = 15; //number of questions
+
+        function loadQuiz() {
+            const quizForm = document.getElementById('quizForm');
+            const randomQuestions = getRandomQuestions(questionPool, questionNumber);
+            randomQuestions.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('question');
+                questionDiv.innerHTML = `
+                    <p>${index + 1}. ${q.question}</p>
+                    ${Object.entries(q.options).map(([key, value]) => `
+                        <label>
+                            <input type="radio" name="q${index}" value="${key}"> ${key}. ${value}
+                        </label><br>
+                    `).join('')}
+                `;
+                quizForm.appendChild(questionDiv);
+            });
+            quizForm.dataset.correctAnswers = JSON.stringify(randomQuestions.map(q => q.correctAnswer));
+        }
+
+        function submitQuiz() {
+            const correctAnswers = JSON.parse(document.getElementById('quizForm').dataset.correctAnswers);
+            let score = 0;
+            let resultText = '';
+
+            correctAnswers.forEach((correctAnswer, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                if (selected) {
+                    if (selected.value === correctAnswer) {
+                        score++;
+                        resultText += `<p>Question ${index + 1}: <span class="correct-answer">Correct</span></p>`;
+                    } else {
+                        resultText += `<p>Question ${index + 1}: <span class="wrong-answer">Wrong</span> (Correct answer: ${correctAnswer})</p>`;
+                    }
+                } else {
+                    resultText += `<p>Question ${index + 1}: <span class="wrong-answer">Not answered</span> (Correct answer: ${correctAnswer})</p>`;
+                }
+            });
+
+            document.getElementById('result').innerHTML = `Your score: ${score} / ${questionNumber} <br>${resultText}`;
+        }
+
+        // Load the quiz when the page is ready
+        window.onload = loadQuiz;
+    </script>
+</body>
+</html>
